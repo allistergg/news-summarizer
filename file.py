@@ -1,27 +1,49 @@
 import requests
 import sys
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.probability import FreqDist
 
 def soupify(url = sys.argv[1]):
+    source = urlparse(url).netloc
+    print(source)
     r = requests.get(url)
     html = r.text
     soup = BeautifulSoup(html, 'lxml')
-    return soup
+    return soup, source
 
 def textify(soup):
-    text = soup.find(class_='content__article-body')
-    submeta = text.findAll(class_='submeta')    
-    richlink = text.findAll(class_='rich-link')
-    caption = text.findAll(class_='caption')
-    metaextras = text.findAll(class_='meta_extras')
-    blockshare = text.findAll(class_='block-share')
-    to_decompose = [submeta, richlink, caption, metaextras, blockshare]
+    def guardian(soup): 
+        text = soup.find(class_='content__article-body')
+        submeta = text.findAll(class_='submeta')    
+        richlink = text.findAll(class_='rich-link')
+        caption = text.findAll(class_='caption')
+        metaextras = text.findAll(class_='meta_extras')
+        blockshare = text.findAll(class_='block-share')
+        to_decompose = [submeta, richlink, caption, metaextras, blockshare]
+        return text, to_decompose
+    def wikipedia(soup):
+        text = soup.find(class_='mw-content-ltr')
+        hatnote = text.findAll(class_='hatnote')
+        citation = text.findAll(class_='citation')
+        infobox = text.findAll(class_='infobox')
+        toc = text.findAll(class_='toc')
+        reference = text.findAll(class_='reference')
+        to_decompose = [hatnote, citation, infobox, toc, reference]
+        return text, to_decompose
+    def rt(soup):
+        text = soup.find(class_='article__text')
+        readmore = text.findAll(class_='read-more')
+        to_decompose = [readmore]
+        return text, to_decompose
     # for element in to_decompose:
     #     for match in element:
     #         match.decompose()
+    
+    sources = {'www.theguardian.com': guardian, 'en.wikipedia.org': wikipedia, 'www.rt.com': rt}
+    text, to_decompose = sources[soup[1]](soup[0])
     [match.decompose() for element in to_decompose for match in element]
     text = text.get_text()
     return text
