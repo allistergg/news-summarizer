@@ -40,7 +40,7 @@ def tokenize(text):
 
 
 
-def calculate_values((word_tokens, sent_tokens)):
+def calculate_values(word_tokens, sent_tokens):
     sentenceValue = {}
     fdist = FreqDist(word_tokens)
 
@@ -55,7 +55,7 @@ def calculate_values((word_tokens, sent_tokens)):
                     sentenceValue[sentence] = wordValue[1]
     return sentenceValue
 
-def average(sentenceValue):
+def calculate_average(sentenceValue):
     sumValues = 0
     # print(sentenceValue)
     for sentence in sentenceValue:
@@ -64,7 +64,10 @@ def average(sentenceValue):
     average = sumValues / len(sentenceValue)
     return average
 
-def summarize(sent_tokens, sentenceValue, average):
+def summarize():
+    word_tokens, sent_tokens = tokenize(textify(soupify()))
+    sentenceValue = calculate_values(word_tokens, sent_tokens)
+    average = calculate_average(sentenceValue)
     summary = ''
     for sentence in sent_tokens:
         if sentence in sentenceValue and sentenceValue[sentence] > (1.5 * average):
@@ -72,10 +75,7 @@ def summarize(sent_tokens, sentenceValue, average):
     return summary
 
 if __name__ == '__main__':
-    word_tokens, sent_tokens = tokenize(textify(soupify()))
-    sentence_values = calculate_values(word_tokens, sent_tokens)
-    summary = summarize(sent_tokens, sentence_values, average(sentence_values))
-    print(summary)
+   print(summarize())
 
 
 
